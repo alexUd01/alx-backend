@@ -34,10 +34,8 @@ class Server:
     def get_page(self, page: int = 1, page_size: int = 10) -> List[List]:
         """Paginate the returned data
         """
-        assert type(page) is int
-        assert page >= 0
-        assert type(page_size) is int
-        assert page_size >= 0
+        assert type(page) is int and type(page_size) is int
+        assert page > 0 and page_size > 0
 
         self.dataset()
         start, end = index_range(page, page_size)
