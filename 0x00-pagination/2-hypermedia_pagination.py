@@ -42,15 +42,17 @@ class Server:
         return dataset[start:end]
 
     def get_hyper(self, page: int = 1, page_size: int = 10) -> Dict:
-        """Does stuff not yet known
+        """A method that returns a page's data
         """
+        assert type(page) is int and type(page_size) is int
+        assert page > 0 and page_size > 0
         # Compute next_page
         if len(self.get_page(page + 1, page_size)) <= 0:
             next_page = None
         else:
             next_page = page + 1
         # Compute prev_page
-        if page < 1 or page_size > len(self.__dataset):
+        if page == 1 or page_size >= len(self.__dataset):
             prev_page = None
         else:
             prev_page = page - 1
