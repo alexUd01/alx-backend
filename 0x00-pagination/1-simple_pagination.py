@@ -42,9 +42,3 @@ class Server:
         self.dataset()
         start, end = index_range(page, page_size)
         return self.__dataset[start:end]
-
-
-if __name__ == "__main__":
-    x = Server()
-    x.dataset()
-    x.get_page()
