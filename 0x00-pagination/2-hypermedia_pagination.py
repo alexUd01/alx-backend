@@ -37,9 +37,9 @@ class Server:
         assert type(page) is int and type(page_size) is int
         assert page > 0 and page_size > 0
 
-        self.dataset()
+        dataset = self.dataset()
         start, end = index_range(page, page_size)
-        return self.__dataset[start:end]
+        return dataset[start:end]
 
     def get_hyper(self, page: int = 1, page_size: int = 10) -> Dict:
         """Does stuff not yet known
