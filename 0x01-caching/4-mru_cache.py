@@ -24,7 +24,6 @@ INSTRUCTIONS:
 BaseCaching = __import__('base_caching').BaseCaching
 
 
-
 class MRUCache(BaseCaching):
     """ The class """
 
