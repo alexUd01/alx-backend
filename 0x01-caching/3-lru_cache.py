@@ -40,9 +40,6 @@ class LRUCache(BaseCaching):
         # 1. If key already exists
         if key in self.__keys_lst:
             self.cache_data[key] = item
-            for i in range(self.__keys_lst.index(key), self.MAX_ITEMS - 1):
-                self.__keys_lst[i] = self.__keys_lst[i + 1]
-            self.__keys_lst[-1] = key
             return
 
         # 2. If the key does not exist
@@ -62,7 +59,10 @@ class LRUCache(BaseCaching):
         """ Retrieve data stored in cache """
         if key not in self.__keys_lst:
             return
+
+        # Update access time
         for i in range(self.__keys_lst.index(key), self.MAX_ITEMS - 1):
             self.__keys_lst[i] = self.__keys_lst[i + 1]
         self.__keys_lst[-1] = key
+
         return self.cache_data.get(key)
