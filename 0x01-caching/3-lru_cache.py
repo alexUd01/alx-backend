@@ -24,7 +24,6 @@ INSTRUCTIONS:
 BaseCaching = __import__('base_caching').BaseCaching
 
 
-
 class LRUCache(BaseCaching):
     """ The class """
 
@@ -39,41 +38,28 @@ class LRUCache(BaseCaching):
         if key is None or item is None:
             return
         # 1. If key already exists
-        if idx is not None:
+        if key in self.__keys_lst:
             self.cache_data[key] = item
-            self.__next_pop_idx_n_key = next_pop(key, idx + 1, self.__keys_lst)
             return
 
         # 2. If the key does not exist
         self.cache_data[key] = item
-
-        if self.__next_pop_idx_n_key is not None:
-            i, k = self.__next_pop_idx_n_key
-            print('DISCARD: {}'.format(k))
-            del self.cache_data[k]
-            self.__keys_lst[i] = {key: 1}
-            self.__next_pop_idx_n_key = None
-            self.__nb_items += 1
-            return
-
-        curr_idx = self.__nb_items % self.MAX_ITEMS
-        self.__keys_lst[curr_idx][key] = 1  # may be a dict with 2 k:v pairs
+        self.__keys_lst.append(key)
 
         # 3. Insertion after MAX_ITEMS exceeded
         if self.__nb_items >= self.MAX_ITEMS:
-            # remove old data from dict with 2 k:v pairs
-            if len(self.__keys_lst[curr_idx].keys()) == 2:
-                other_key = get_other_key(key, self.__keys_lst[curr_idx])
-                del self.__keys_lst[curr_idx][other_key]
-                print('DISCARD: {}'.format(other_key))
-                del self.cache_data[other_key]
+            key_to_rm = self.__keys_lst[0]
+            self.__keys_lst = self.__keys_lst[1:]
+            print('DISCARD: {}'.format(key_to_rm))
+            del self.cache_data[key_to_rm]
+
         self.__nb_items += 1
 
     def get(self, key):
         """ Retrieve data stored in cache """
-        if key not in self.cache_data.keys():
+        if key not in self.__keys_lst:
             return
-        for d in self.__keys_lst:
-            if key in d.keys():
-                d[key] += 1
+        for i in range(self.__keys_lst.index(key), self.MAX_ITEMS - 1):
+            self.__keys_lst[i] = self.__keys_lst[i + 1]
+        self.__keys_lst[-1] = key
         return self.cache_data.get(key)
