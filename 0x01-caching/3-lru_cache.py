@@ -26,43 +26,29 @@ BaseCaching = __import__('base_caching').BaseCaching
 
 class LRUCache(BaseCaching):
     """ The class """
-
     def __init__(self):
-        """ Initializations """
+        """Initializes the cache.
+        """
         super().__init__()
-        self.__nb_items = 0
-        self.__keys_lst = []
+        self.cache_data = OrderedDict()
 
     def put(self, key, item):
-        """ Insert data into cache storage """
+        """Adds an item in the cache.
+        """
         if key is None or item is None:
             return
-        # 1. If key already exists
-        if key in self.__keys_lst:
+        if key not in self.cache_data:
+            if len(self.cache_data) + 1 > BaseCaching.MAX_ITEMS:
+                lru_key, _ = self.cache_data.popitem(True)
+                print("DISCARD:", lru_key)
             self.cache_data[key] = item
-            return
-
-        # 2. If the key does not exist
-        self.cache_data[key] = item
-        self.__keys_lst.append(key)
-
-        # 3. Insertion after MAX_ITEMS exceeded
-        if self.__nb_items >= self.MAX_ITEMS:
-            key_to_rm = self.__keys_lst[0]
-            self.__keys_lst = self.__keys_lst[1:]
-            print('DISCARD: {}'.format(key_to_rm))
-            del self.cache_data[key_to_rm]
-
-        self.__nb_items += 1
+            self.cache_data.move_to_end(key, last=False)
+        else:
+            self.cache_data[key] = item
 
     def get(self, key):
-        """ Retrieve data stored in cache """
-        if key not in self.__keys_lst:
-            return
-
-        # Update access time
-        for i in range(self.__keys_lst.index(key), self.MAX_ITEMS - 1):
-            self.__keys_lst[i] = self.__keys_lst[i + 1]
-        self.__keys_lst[-1] = key
-
-        return self.cache_data.get(key)
+        """Retrieves an item by key.
+        """
+        if key is not None and key in self.cache_data:
+            self.cache_data.move_to_end(key, last=False)
+        return self.cache_data.get(key, None)
