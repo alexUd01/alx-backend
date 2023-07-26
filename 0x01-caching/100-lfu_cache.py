@@ -20,83 +20,70 @@ INSTRUCTIONS:
   - If `key` is None or if the `key` doesn’t exist in `self.cache_data`,
     return None.
 """
-
+from collections import OrderedDict
 BaseCaching = __import__('base_caching').BaseCaching
-
-
-def get_key_index(key, lst):
-    """ A helper function """
-    for i in range(len(lst)):
-        if key in lst[i].keys():
-            return i
-    return None
-
-
-def get_other_key(known_key, d):
-    """ A helper function """
-    for key in d.keys():
-        if key != known_key:
-            return key
-
-
-def next_pop(start_key, start_idx, lst):
-    """ A helper function """
-    for i in range(start_idx, len(lst)):
-        k = list(lst[i].keys())[0]
-        if lst[i][k] <= lst[start_idx - 1][start_key]:
-            return i, k
 
 
 class LFUCache(BaseCaching):
     """ The class """
 
     def __init__(self):
-        """ Initializations """
+        """Initializes the cache.
+        """
         super().__init__()
-        self.__nb_items = 0
-        self.__keys_lst = [{} for _ in range(self.MAX_ITEMS)]
-        self.__next_pop_idx_n_key = None
+        self.cache_data = OrderedDict()
+        self.keys_freq = []
+
+    def __reorder_items(self, mru_key):
+        """Reorders the items in this cache based on the most
+        recently used item.
+        """
+        max_positions = []
+        mru_freq = 0
+        mru_pos = 0
+        ins_pos = 0
+        for i, key_freq in enumerate(self.keys_freq):
+            if key_freq[0] == mru_key:
+                mru_freq = key_freq[1] + 1
+                mru_pos = i
+                break
+            elif len(max_positions) == 0:
+                max_positions.append(i)
+            elif key_freq[1] < self.keys_freq[max_positions[-1]][1]:
+                max_positions.append(i)
+        max_positions.reverse()
+        for pos in max_positions:
+            if self.keys_freq[pos][1] > mru_freq:
+                break
+            ins_pos = pos
+        self.keys_freq.pop(mru_pos)
+        self.keys_freq.insert(ins_pos, [mru_key, mru_freq])
 
     def put(self, key, item):
-        """ Insert data into cache storage """
+        """Adds an item in the cache.
+        """
         if key is None or item is None:
             return
-        # 1. If key already exists
-        idx = get_key_index(key, self.__keys_lst)
-        if idx is not None:
+        if key not in self.cache_data:
+            if len(self.cache_data) + 1 > BaseCaching.MAX_ITEMS:
+                lfu_key, _ = self.keys_freq[-1]
+                self.cache_data.pop(lfu_key)
+                self.keys_freq.pop()
+                print("DISCARD:", lfu_key)
             self.cache_data[key] = item
-            self.__next_pop_idx_n_key = next_pop(key, idx + 1, self.__keys_lst)
-            return
-
-        # 2. If the key does not exist
-        self.cache_data[key] = item
-
-        if self.__next_pop_idx_n_key is not None:
-            i, k = self.__next_pop_idx_n_key
-            print('DISCARD: {}'.format(k))
-            del self.cache_data[k]
-            self.__keys_lst[i] = {key: 1}
-            self.__next_pop_idx_n_key = next_pop(k, i + 1, self.__keys_lst)
-            return
-
-        curr_idx = self.__nb_items % self.MAX_ITEMS
-        self.__keys_lst[curr_idx][key] = 1  # may be a dict with 2 k:v pairs
-
-        # 3. Insertion after MAX_ITEMS exceeded
-        if self.__nb_items >= self.MAX_ITEMS:
-            # remove old data from dict with 2 k:v pairs
-            if len(self.__keys_lst[curr_idx].keys()) == 2:
-                other_key = get_other_key(key, self.__keys_lst[curr_idx])
-                del self.__keys_lst[curr_idx][other_key]
-                print('DISCARD: {}'.format(other_key))
-                del self.cache_data[other_key]
-        self.__nb_items += 1
+            ins_index = len(self.keys_freq)
+            for i, key_freq in enumerate(self.keys_freq):
+                if key_freq[1] == 0:
+                    ins_index = i
+                    break
+            self.keys_freq.insert(ins_index, [key, 0])
+        else:
+            self.cache_data[key] = item
+            self.__reorder_items(key)
 
     def get(self, key):
-        """ Retrieve data stored in cache """
-        if key not in self.cache_data.keys():
-            return
-        for d in self.__keys_lst:
-            if key in d.keys():
-                d[key] += 1
-        return self.cache_data.get(key)
+        """Retrieves an item by key.
+        """
+        if key is not None and key in self.cache_data:
+            self.__reorder_items(key)
+        return self.cache_data.get(key, None)
