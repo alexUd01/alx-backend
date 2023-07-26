@@ -24,42 +24,76 @@ INSTRUCTIONS:
 BaseCaching = __import__('base_caching').BaseCaching
 
 
+def get_key_index(key, lst):
+    """ A helper function """
+    for i in range(len(lst)):
+        if key in lst[i].keys():
+            return i
+    return None
+
+
+def get_other_key(known_key, d):
+    """ A helper function """
+    for key in d.keys():
+        if key != known_key:
+            return key
+
+
 class LRUCache(BaseCaching):
     """ The class """
 
     def __init__(self):
         """ Initializations """
         super().__init__()
-        self.__keys = {}
         self.__nb_items = 0
+        self.__keys_lst = [{} for _ in range(self.MAX_ITEMS)]
+        self.__next_pop_idx_n_key = None
 
     def put(self, key, item):
         """ Insert data into cache storage """
         if key is None or item is None:
             return
-        if key in self.__keys.keys():  # IF KEY EXISTS (update the value stored)
-            self.__keys[key] += 1
+        # 1. If key already exists
+        idx = get_key_index(key, self.__keys_lst)
+        if idx is not None:
             self.cache_data[key] = item
+            self.__keys_lst[idx][key] += 1
+            for i in range(idx + 1, len(self.__keys_lst)):
+                k = list(self.__keys_lst[i].keys())[0]
+                if self.__keys_lst[i][k] <= self.__keys_lst[idx][key]:
+                    self.__next_pop_idx_n_key = i, k
+                    break
             return
 
-        # KEY DOES NOT EXIST
-        try:  # get the least recently used item
-            _min = min(self.__keys.values())
-        except ValueError:  # List `self.__keys.values()` is empty
-            _min = 0
-
-        self.__keys[key] = 1
+        # 2. If the key does not exist
         self.cache_data[key] = item
-        # remove least used item from cache
+
+        if self.__next_pop_idx_n_key is not None:
+            i, k = self.__next_pop_idx_n_key
+            print('DISCARD: {}'.format(k))
+            del self.cache_data[k]
+            self.__keys_lst[i] = {key: 1}
+            self.__next_pop_idx_n_key = None
+            return
+
+        curr_idx = self.__nb_items % self.MAX_ITEMS
+        self.__keys_lst[curr_idx][key] = 1  # curr_idx may contain dict with 2 k:v pairs
+
+        # 3. Insertion after MAX_ITEMS exceeded
         if self.__nb_items >= self.MAX_ITEMS:
-            former_key = None
-            for k in self.cache_data.keys():
-                if self.__keys[k] <= _min and k != key:
-                    former_key = k
-            print('DISCARD: {}'.format(former_key))
-            del self.cache_data[former_key]
+            # remove old data from dict with 2 k:v pairs
+            if len(self.__keys_lst[curr_idx].keys()) == 2:
+                other_key = get_other_key(key, self.__keys_lst[curr_idx])
+                del self.__keys_lst[curr_idx][other_key]
+                print('DISCARD: {}'.format(other_key))
+                del self.cache_data[other_key]
         self.__nb_items += 1
 
     def get(self, key):
         """ Retrieve data stored in cache """
+        if key not in self.cache_data.keys():
+            return
+        for d in self.__keys_lst:
+            if key in d.keys():
+                d[key] += 1
         return self.cache_data.get(key)
