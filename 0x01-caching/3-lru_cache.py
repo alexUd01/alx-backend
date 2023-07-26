@@ -77,7 +77,7 @@ class LRUCache(BaseCaching):
             return
 
         curr_idx = self.__nb_items % self.MAX_ITEMS
-        self.__keys_lst[curr_idx][key] = 1  # curr_idx may contain dict with 2 k:v pairs
+        self.__keys_lst[curr_idx][key] = 1  # may be a dict with 2 k:v pairs
 
         # 3. Insertion after MAX_ITEMS exceeded
         if self.__nb_items >= self.MAX_ITEMS:
