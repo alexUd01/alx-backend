@@ -39,6 +39,14 @@ def get_other_key(known_key, d):
             return key
 
 
+def get_next_pop(start_key, start_idx, lst):
+    """ A helper function """
+    for i in range(start_idx, len(lst)):
+        k = list(lst[i].keys())[0]
+        if lst[i][k] <= lst[start_idx - 1][start_key]:
+            return i, k
+
+
 class LRUCache(BaseCaching):
     """ The class """
 
@@ -58,11 +66,7 @@ class LRUCache(BaseCaching):
         if idx is not None:
             self.cache_data[key] = item
             self.__keys_lst[idx][key] += 1
-            for i in range(idx + 1, len(self.__keys_lst)):
-                k = list(self.__keys_lst[i].keys())[0]
-                if self.__keys_lst[i][k] <= self.__keys_lst[idx][key]:
-                    self.__next_pop_idx_n_key = i, k
-                    break
+            self.__next_pop_idx_n_key = get_next_pop(key, idx + 1, self.__keys_lst)
             return
 
         # 2. If the key does not exist
@@ -73,7 +77,7 @@ class LRUCache(BaseCaching):
             print('DISCARD: {}'.format(k))
             del self.cache_data[k]
             self.__keys_lst[i] = {key: 1}
-            self.__next_pop_idx_n_key = None
+            self.__next_pop_idx_n_key = get_next_pop(k, i + 1, self.__keys_lst)
             return
 
         curr_idx = self.__nb_items % self.MAX_ITEMS
