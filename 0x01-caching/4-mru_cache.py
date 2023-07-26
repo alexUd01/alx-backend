@@ -24,28 +24,6 @@ INSTRUCTIONS:
 BaseCaching = __import__('base_caching').BaseCaching
 
 
-def get_key_index(key, lst):
-    """ A helper function """
-    for i in range(len(lst)):
-        if key in lst[i].keys():
-            return i
-    return None
-
-
-def get_other_key(known_key, d):
-    """ A helper function """
-    for key in d.keys():
-        if key != known_key:
-            return key
-
-
-def next_pop(start_key, start_idx, lst):
-    """ A helper function """
-    for i in range(start_idx, len(lst)):
-        k = list(lst[i].keys())[0]
-        if lst[i][k] <= lst[start_idx - 1][start_key]:
-            return i, k
-
 
 class MRUCache(BaseCaching):
     """ The class """

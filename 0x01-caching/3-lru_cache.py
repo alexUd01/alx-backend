@@ -24,28 +24,6 @@ INSTRUCTIONS:
 BaseCaching = __import__('base_caching').BaseCaching
 
 
-def get_key_index(key, lst):
-    """ A helper function """
-    for i in range(len(lst)):
-        if key in lst[i].keys():
-            return i
-    return None
-
-
-def get_other_key(known_key, d):
-    """ A helper function """
-    for key in d.keys():
-        if key != known_key:
-            return key
-
-
-def next_pop(start_key, start_idx, lst):
-    """ A helper function """
-    for i in range(start_idx, len(lst)):
-        k = list(lst[i].keys())[0]
-        if lst[i][k] <= lst[start_idx - 1][start_key]:
-            return i, k
-
 
 class LRUCache(BaseCaching):
     """ The class """
@@ -54,15 +32,13 @@ class LRUCache(BaseCaching):
         """ Initializations """
         super().__init__()
         self.__nb_items = 0
-        self.__keys_lst = [{} for _ in range(self.MAX_ITEMS)]
-        self.__next_pop_idx_n_key = None
+        self.__keys_lst = []
 
     def put(self, key, item):
         """ Insert data into cache storage """
         if key is None or item is None:
             return
         # 1. If key already exists
-        idx = get_key_index(key, self.__keys_lst)
         if idx is not None:
             self.cache_data[key] = item
             self.__next_pop_idx_n_key = next_pop(key, idx + 1, self.__keys_lst)
@@ -76,7 +52,8 @@ class LRUCache(BaseCaching):
             print('DISCARD: {}'.format(k))
             del self.cache_data[k]
             self.__keys_lst[i] = {key: 1}
-            self.__next_pop_idx_n_key = next_pop(k, i + 1, self.__keys_lst)
+            self.__next_pop_idx_n_key = None
+            self.__nb_items += 1
             return
 
         curr_idx = self.__nb_items % self.MAX_ITEMS
