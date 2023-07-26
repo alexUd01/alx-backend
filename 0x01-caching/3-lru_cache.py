@@ -65,7 +65,6 @@ class LRUCache(BaseCaching):
         idx = get_key_index(key, self.__keys_lst)
         if idx is not None:
             self.cache_data[key] = item
-            self.__keys_lst[idx][key] += 1
             self.__next_pop_idx_n_key = next_pop(key, idx + 1, self.__keys_lst)
             return
 
