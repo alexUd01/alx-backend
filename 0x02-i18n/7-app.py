@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, g
 from flask_babel import Babel
 from pytz import country_names, all_timezones
 from pytz.exceptions import UnknownTimeZoneError
+from typing import Dict
 
 app = Flask(__name__)
 babel = Babel(app)
@@ -90,14 +91,14 @@ def get_timezone():
         )
 
 
-def get_user(user_id):
+def get_user(user_id) -> Dict:
     """ Helper function that mocks database connection """
     if user_id is not None:
         return users.get(int(user_id))
 
 
 @app.before_request
-def before_request():
+def before_request() -> None:
     """ A function to be executed before other functions """
     query_string = request.query_string.decode(encoding='utf-8')
     user_id = get_param_value('login_as', query_string)
@@ -105,10 +106,10 @@ def before_request():
 
 
 @app.route('/')
-def index():
+def index() -> str:
     """ Landing page """
     return render_template('7-index.html', user=g.user)
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
