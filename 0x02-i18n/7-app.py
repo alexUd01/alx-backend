@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, g
 from flask_babel import Babel
 from pytz import country_names, all_timezones
 from pytz.exceptions import UnknownTimeZoneError
-from typing import Dict
+from typing import Dict, Any, List, Union
 
 app = Flask(__name__)
 babel = Babel(app)
@@ -27,7 +27,7 @@ class Config():
 app.config.from_object(Config)
 
 
-def get_param_value(substring, query_string):
+def get_param_value(substring: str, query_string: str) -> Any:
     """ A helper function that retrieves the paramater values from a url
     query
     """

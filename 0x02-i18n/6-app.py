@@ -3,6 +3,7 @@
 from flask import Flask, render_template, request, g
 from flask_babel import Babel
 from pytz import country_names
+from typing import Dict, Any, List, Union
 
 app = Flask(__name__)
 babel = Babel(app)
@@ -25,7 +26,7 @@ class Config():
 app.config.from_object(Config)
 
 
-def get_param_value(substring, query_string):
+def get_param_value(substring: str, query_string: str) -> Any:
     """ A helper function that retrieves the paramater values from a url
     query
     """
@@ -38,7 +39,7 @@ def get_param_value(substring, query_string):
 
 
 @babel.localeselector
-def get_locale():
+def get_locale() -> str:
     """ A function that will be invoked to select language translation
     for each request that a user will make
     """
@@ -61,14 +62,15 @@ def get_locale():
     return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 
-def get_user(user_id):
+def get_user(user_id) -> Union[Dict, None]:
     """ Helper function that mocks database connection """
     if user_id is not None:
         return users.get(int(user_id))
+    return None
 
 
 @app.before_request
-def before_request():
+def before_request() -> None:
     """ A function to be executed before other functions """
     query_string = request.query_string.decode(encoding='utf-8')
     user_id = get_param_value('login_as', query_string)
@@ -76,7 +78,7 @@ def before_request():
 
 
 @app.route('/')
-def index():
+def index() -> str:
     """ Landing page """
     return render_template('6-index.html', user=g.user)
 
