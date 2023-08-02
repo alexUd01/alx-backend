@@ -45,10 +45,20 @@ def get_locale():
     query_string = request.query_string.decode(encoding='utf-8')
 
     locale = get_param_value('locale', query_string)
+    # 1. Check locale from url
     if locale is not None:
         if locale.upper() in country_names.keys() \
            and locale.lower() in app.config['LANGUAGES']:
             return locale
+    # 2. Check locale from user setting
+    if locale is None:
+        pass
+    # 3. Check locale from request header
+    if locale is None:
+        local = request.headers['Accept-Language']
+        print(local)
+        return local.split(',')[0][:2]
+    # 4. Use default locale
     return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 
@@ -69,7 +79,7 @@ def before_request():
 @app.route('/')
 def index():
     """ Landing page """
-    return render_template('5-index.html', user=g.user)
+    return render_template('6-index.html', user=g.user)
 
 
 if __name__ == "__main__":
