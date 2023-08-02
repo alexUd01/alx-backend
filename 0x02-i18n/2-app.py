@@ -18,7 +18,7 @@ app.config.from_object(Config)
 
 
 @babel.localeselector
-def get_locale():
+def get_locale() -> str:
     """ A function that will be invoked to select language translation
     for each request that a user will make
     """
@@ -26,7 +26,7 @@ def get_locale():
 
 
 @app.route('/')
-def index():
+def index() -> str:
     """ Landing page """
     return render_template('2-index.html')
 
