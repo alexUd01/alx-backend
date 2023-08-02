@@ -2,7 +2,8 @@
 """ Docstring here """
 from flask import Flask, render_template, request, g
 from flask_babel import Babel
-from pytz import country_names
+from pytz import country_names, all_timezones
+from pytz.exceptions import UnknownTimeZoneError
 
 app = Flask(__name__)
 babel = Babel(app)
@@ -61,6 +62,34 @@ def get_locale():
     return request.accept_languages.best_match(app.config['LANGUAGES'])
 
 
+@babel.timezoneselector
+def get_timezone():
+    """ Retrieve timezone info """
+    query_string = request.query_string.decode(encoding='utf-8')
+    print('hello')
+
+    timezone = get_param_value('timezone', query_string)
+    print(dir(request.headers))
+    try:
+        # 1. Check locale from url
+        if timezone is not None:
+            tzone = pytz.timezone(timezone)
+            return tzone.zone
+        # 2. Check locale from user setting
+        if timezone is None:
+            pass
+        # 3. Check locale from request header
+        if timezone is None:
+            timezone = request.headers['The-Time-Zone-IANA']
+            tzone = pytz.timezone(timezone)
+            return tzone.zone
+    except UnknownTimeZoneError:
+        # 4. Use default locale
+        return request.accept_languages.best_match(
+            app.config['BABEL_DEFAULT_TIMEZONE']
+        )
+
+
 def get_user(user_id):
     """ Helper function that mocks database connection """
     if user_id is not None:
@@ -78,7 +107,7 @@ def before_request():
 @app.route('/')
 def index():
     """ Landing page """
-    return render_template('6-index.html', user=g.user)
+    return render_template('7-index.html', user=g.user)
 
 
 if __name__ == "__main__":
